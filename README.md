@@ -78,7 +78,7 @@ EXPO_PUBLIC_IAP_MOCK=1 npx expo start
 
 ### 종철 체크리스트 — App Store Connect + Google Play 상품 만들기
 
-상세 한글 가이드: Project store [`docs/iap-setup-checklist.md`](https://github.com/whdwlfdl-art/eunha-saju) (에이전트 Context에 동일 파일).
+상세 한글 가이드: Project store `docs/iap-setup-checklist.md`.
 
 **공통**
 
