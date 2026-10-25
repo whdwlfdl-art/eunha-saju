@@ -20,9 +20,9 @@ export const Copy = {
   productTitle: '상세 사주 풀이',
   productBody:
     '성격·재물·연애·올해 흐름을 차분히 풀어드려요. 한 번 결제하면 앱에서 다시 볼 수 있어요.',
-  productPriceStub: '일회 결제 · 가격 미정 (IAP 자리)',
+  productPriceStub: '일회 결제 · 6,900원',
   productPreview: '미리보기 컷 (디자인 자리)',
-  productPayStub: '결제하기 (IAP 준비 중)',
+  productPayStub: '₩6,900 결제하기 (IAP 준비 중)',
   productRestoreStub: '구매 복원 (준비 중)',
   backHome: '홈으로',
 } as const;
