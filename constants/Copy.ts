@@ -20,9 +20,26 @@ export const Copy = {
   productTitle: '상세 사주 풀이',
   productBody:
     '성격·재물·연애·올해 흐름을 차분히 풀어드려요. 한 번 결제하면 앱에서 다시 볼 수 있어요.',
-  productPriceStub: '일회 결제 · 가격 미정 (IAP 자리)',
+  productPrice: '일회 결제 · ₩6,900',
   productPreview: '미리보기 컷 (디자인 자리)',
-  productPayStub: '결제하기 (IAP 준비 중)',
-  productRestoreStub: '구매 복원 (준비 중)',
+  productUnlockedSample:
+    '상세 풀이 잠금이 해제되었어요. (콘텐츠 엔진 연결 전 샘플 — 성격·재물·연애·올해 흐름이 여기에 펼쳐져요.)',
+  productPay: '₩6,900 결제하기',
+  productPayLoading: '결제 진행 중…',
+  productRestore: '구매 복원',
+  productRestoreLoading: '복원 중…',
+  productMockBadge: '개발용 목(mock) 결제 — 스토어 미연결',
+  productPaySuccessTitle: '결제 완료',
+  productPaySuccessBody: '상세 사주 풀이를 열어둘게요.',
+  productPaySuccessMockBody:
+    '목(mock) 모드로 잠금을 해제했어요. 실제 스토어 결제는 개발 빌드 + 콘솔 상품 설정 후 가능해요.',
+  productPayErrorTitle: '결제 안내',
+  productRestoreSuccessTitle: '복원 완료',
+  productRestoreSuccessBody: '이전 구매를 확인했어요. 상세 풀이를 열어둘게요.',
+  productRestoreSuccessMockBody:
+    '목(mock) 모드로 구매를 복원(또는 개발용 잠금 부여)했어요.',
+  productRestoreEmptyTitle: '복원할 구매 없음',
+  productRestoreEmptyBody:
+    '이 계정에서 상세 사주 구매 내역을 찾지 못했어요. 결제한 Apple/Google 계정으로 다시 시도해 주세요.',
   backHome: '홈으로',
 } as const;

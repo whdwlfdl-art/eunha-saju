@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 
 import {
@@ -11,40 +11,90 @@ import {
 } from '@/components/ui';
 import { Brand } from '@/constants/Colors';
 import { Copy } from '@/constants/Copy';
+import { DETAIL_REPORT_PRODUCT_ID } from '@/constants/Iap';
+import { useDetailPurchase } from '@/lib/iap';
 
-/** Paid detail / IAP CTA stub — no real StoreKit/Play Billing yet. */
+/**
+ * Paid detail CTA — wires expo-iap (non-consumable) with mock fallback
+ * for web / Expo Go / unconfigured store.
+ */
 export default function DetailScreen() {
-  const stubPay = () => {
-    Alert.alert('준비 중', '인앱결제(IAP)는 아직 연결되지 않았어요.');
-  };
+  const {
+    unlocked,
+    hydrated,
+    mode,
+    purchasing,
+    restoring,
+    purchase,
+    restore,
+  } = useDetailPurchase();
 
-  const stubRestore = () => {
-    Alert.alert('준비 중', '구매 복원은 아직 연결되지 않았어요.');
-  };
+  const busy = purchasing || restoring;
 
   return (
     <Screen>
       <Title>{Copy.productTitle}</Title>
       <Body>{Copy.productBody}</Body>
-      <Muted>{Copy.productPriceStub}</Muted>
+      <Muted>{Copy.productPrice}</Muted>
+      {mode === 'mock' ? <Muted>{Copy.productMockBadge}</Muted> : null}
 
-      <View style={styles.preview}>
-        <Muted>{Copy.productPreview}</Muted>
-      </View>
+      {!hydrated ? (
+        <View style={styles.loading}>
+          <ActivityIndicator color={Brand.sky} />
+        </View>
+      ) : unlocked ? (
+        <>
+          <View style={styles.preview}>
+            <Body>{Copy.productUnlockedSample}</Body>
+          </View>
+          <View style={styles.actions}>
+            <SecondaryButton
+              label={Copy.backHome}
+              onPress={() => router.replace('/')}
+            />
+          </View>
+        </>
+      ) : (
+        <>
+          <View style={styles.preview}>
+            <Muted>{Copy.productPreview}</Muted>
+            <Muted>{`상품 ID · ${DETAIL_REPORT_PRODUCT_ID}`}</Muted>
+          </View>
 
-      <View style={styles.actions}>
-        <PrimaryButton label={Copy.productPayStub} onPress={stubPay} />
-        <SecondaryButton label={Copy.productRestoreStub} onPress={stubRestore} />
-        <SecondaryButton
-          label={Copy.backHome}
-          onPress={() => router.replace('/')}
-        />
-      </View>
+          <View style={styles.actions}>
+            <PrimaryButton
+              label={purchasing ? Copy.productPayLoading : Copy.productPay}
+              onPress={() => {
+                void purchase();
+              }}
+              disabled={busy}
+            />
+            <SecondaryButton
+              label={
+                restoring ? Copy.productRestoreLoading : Copy.productRestore
+              }
+              onPress={() => {
+                void restore();
+              }}
+              disabled={busy}
+            />
+            <SecondaryButton
+              label={Copy.backHome}
+              onPress={() => router.replace('/')}
+              disabled={busy}
+            />
+          </View>
+        </>
+      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  loading: {
+    marginTop: 48,
+    alignItems: 'center',
+  },
   preview: {
     marginTop: 28,
     marginBottom: 32,
@@ -56,6 +106,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+    gap: 8,
   },
   actions: {
     gap: 12,
