@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import {
   Body,
@@ -10,44 +10,78 @@ import {
   Screen,
   Title,
 } from '@/components/ui';
+import { isValidBirthDate, isValidBirthTime, type Gender } from '@/content';
 import { Brand } from '@/constants/Colors';
 import { Copy } from '@/constants/Copy';
 
-type Gender = 'female' | 'male' | 'other';
-
-/** Birth-date input stub — no real calendar/saju engine yet. */
+/** Birth input — date / time / gender → fortune (or detail intent). */
 export default function BirthScreen() {
+  const { intent } = useLocalSearchParams<{ intent?: string }>();
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [timeUnknown, setTimeUnknown] = useState(false);
   const [gender, setGender] = useState<Gender>('female');
+  const [touched, setTouched] = useState(false);
+
+  const dateOk = isValidBirthDate(date);
+  const timeOk = timeUnknown || isValidBirthTime(time);
+  const canSubmit = dateOk && timeOk;
+
+  const errorMessage = useMemo(() => {
+    if (!touched) return null;
+    if (!dateOk) return Copy.birthDateError;
+    if (!timeOk) return Copy.birthTimeError;
+    return null;
+  }, [touched, dateOk, timeOk]);
+
+  const onSubmit = () => {
+    setTouched(true);
+    if (!canSubmit) return;
+
+    const params = {
+      date,
+      time: timeUnknown ? '' : time,
+      timeUnknown: timeUnknown ? '1' : '0',
+      gender,
+      intent: intent === 'detail' ? 'detail' : 'fortune',
+    };
+
+    if (intent === 'detail') {
+      router.push({ pathname: '/detail', params });
+      return;
+    }
+
+    router.push({ pathname: '/fortune', params });
+  };
 
   return (
-    <Screen>
+    <Screen scroll>
       <Title>{Copy.birthTitle}</Title>
       <Muted>{Copy.birthHint}</Muted>
 
       <View style={styles.form}>
         <View style={styles.block}>
-          <Text style={styles.label}>생년월일</Text>
+          <Text style={styles.label}>{Copy.birthDateLabel}</Text>
           <Field
-            placeholder="예: 1990-05-12"
+            placeholder={Copy.birthDatePlaceholder}
             value={date}
             onChangeText={setDate}
             keyboardType="numbers-and-punctuation"
             autoCorrect={false}
+            autoCapitalize="none"
           />
         </View>
 
         <View style={styles.block}>
-          <Text style={styles.label}>태어난 시간</Text>
+          <Text style={styles.label}>{Copy.birthTimeLabel}</Text>
           <Field
-            placeholder="예: 14:30"
+            placeholder={Copy.birthTimePlaceholder}
             value={timeUnknown ? '' : time}
             onChangeText={setTime}
             editable={!timeUnknown}
             keyboardType="numbers-and-punctuation"
             autoCorrect={false}
+            autoCapitalize="none"
           />
           <Pressable
             accessibilityRole="checkbox"
@@ -84,21 +118,11 @@ export default function BirthScreen() {
             ))}
           </View>
         </View>
+
+        {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
       </View>
 
-      <PrimaryButton
-        label={Copy.birthSubmit}
-        onPress={() =>
-          router.push({
-            pathname: '/fortune',
-            params: {
-              date: date || '미입력',
-              time: timeUnknown ? '모름' : time || '미입력',
-              gender,
-            },
-          })
-        }
-      />
+      <PrimaryButton label={Copy.birthSubmit} onPress={onSubmit} />
     </Screen>
   );
 }
@@ -158,5 +182,10 @@ const styles = StyleSheet.create({
   },
   chipTextOn: {
     color: Brand.white,
+  },
+  error: {
+    color: '#8b3a3a',
+    fontSize: 14,
+    lineHeight: 20,
   },
 });
