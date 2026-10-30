@@ -13,6 +13,7 @@ import {
 import { isValidBirthDate, isValidBirthTime, type Gender } from '@/content';
 import { Brand } from '@/constants/Colors';
 import { Copy } from '@/constants/Copy';
+import { Font } from '@/constants/Typography';
 
 /** Birth input — date / time / gender → fortune (or detail intent). */
 export default function BirthScreen() {
@@ -23,6 +24,7 @@ export default function BirthScreen() {
   const [gender, setGender] = useState<Gender>('female');
   const [touched, setTouched] = useState(false);
 
+  const forDetail = intent === 'detail';
   const dateOk = isValidBirthDate(date);
   const timeOk = timeUnknown || isValidBirthTime(time);
   const canSubmit = dateOk && timeOk;
@@ -43,10 +45,10 @@ export default function BirthScreen() {
       time: timeUnknown ? '' : time,
       timeUnknown: timeUnknown ? '1' : '0',
       gender,
-      intent: intent === 'detail' ? 'detail' : 'fortune',
+      intent: forDetail ? 'detail' : 'fortune',
     };
 
-    if (intent === 'detail') {
+    if (forDetail) {
       router.push({ pathname: '/detail', params });
       return;
     }
@@ -55,7 +57,7 @@ export default function BirthScreen() {
   };
 
   return (
-    <Screen scroll>
+    <Screen scroll contentStyle={styles.content}>
       <Title>{Copy.birthTitle}</Title>
       <Muted>{Copy.birthHint}</Muted>
 
@@ -82,6 +84,7 @@ export default function BirthScreen() {
             keyboardType="numbers-and-punctuation"
             autoCorrect={false}
             autoCapitalize="none"
+            style={timeUnknown ? styles.fieldDimmed : undefined}
           />
           <Pressable
             accessibilityRole="checkbox"
@@ -95,57 +98,67 @@ export default function BirthScreen() {
 
         <View style={styles.block}>
           <Text style={styles.label}>{Copy.birthGender}</Text>
-          <View style={styles.chips}>
+          <View style={styles.segment}>
             {(
               [
                 ['female', Copy.birthGenderFemale],
                 ['male', Copy.birthGenderMale],
                 ['other', Copy.birthGenderOther],
               ] as const
-            ).map(([value, label]) => (
-              <Pressable
-                key={value}
-                onPress={() => setGender(value)}
-                style={[styles.chip, gender === value && styles.chipOn]}>
-                <Text
-                  style={[
-                    styles.chipText,
-                    gender === value && styles.chipTextOn,
-                  ]}>
-                  {label}
-                </Text>
-              </Pressable>
-            ))}
+            ).map(([value, label]) => {
+              const on = gender === value;
+              return (
+                <Pressable
+                  key={value}
+                  onPress={() => setGender(value)}
+                  style={[styles.segmentItem, on && styles.segmentItemOn]}>
+                  <Text
+                    style={[styles.segmentText, on && styles.segmentTextOn]}>
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
         {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
       </View>
 
-      <PrimaryButton label={Copy.birthSubmit} onPress={onSubmit} />
+      <PrimaryButton
+        label={forDetail ? Copy.birthSubmitDetail : Copy.birthSubmit}
+        onPress={onSubmit}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  content: {
+    paddingBottom: 28,
+  },
   form: {
-    marginTop: 28,
-    marginBottom: 32,
-    gap: 22,
+    marginTop: 32,
+    marginBottom: 36,
+    gap: 26,
   },
   block: {
-    gap: 8,
+    gap: 10,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Font.sansSemi,
+    fontSize: 13,
     color: Brand.sky,
+    letterSpacing: 0.2,
+  },
+  fieldDimmed: {
+    opacity: 0.45,
   },
   checkRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginTop: 4,
+    marginTop: 2,
   },
   checkbox: {
     width: 20,
@@ -159,32 +172,34 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.amber,
     borderColor: Brand.amber,
   },
-  chips: {
+  segment: {
     flexDirection: 'row',
-    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Brand.line,
+    gap: 4,
   },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Brand.line,
-    backgroundColor: Brand.white,
+  segmentItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: -1,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  chipOn: {
-    backgroundColor: Brand.sky,
-    borderColor: Brand.sky,
+  segmentItemOn: {
+    borderBottomColor: Brand.amber,
   },
-  chipText: {
-    color: Brand.ink,
+  segmentText: {
+    fontFamily: Font.sansMedium,
+    color: Brand.inkMuted,
     fontSize: 15,
-    fontWeight: '500',
   },
-  chipTextOn: {
-    color: Brand.white,
+  segmentTextOn: {
+    color: Brand.ink,
+    fontFamily: Font.sansSemi,
   },
   error: {
-    color: '#8b3a3a',
+    fontFamily: Font.sans,
+    color: Brand.danger,
     fontSize: 14,
     lineHeight: 20,
   },
