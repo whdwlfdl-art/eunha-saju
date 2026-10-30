@@ -30,14 +30,26 @@ export const Copy = {
   productTitle: '상세 사주 풀이',
   productBody:
     '성격·재물·연애·올해 흐름을 차분히 풀어드려요. 한 번 결제하면 앱에서 다시 볼 수 있어요.',
-  productPriceStub: '일회 결제 · 6,900원',
+  /** Locked MVP UI price (₩6,900) — matches store console KRW setting. */
+  productPrice: '일회 결제 · ₩6,900',
   productPreview: '미리보기 — 아래에서 항목을 확인할 수 있어요',
-  productPayStub: '₩6,900 결제하기 (IAP 준비 중)',
-  productUnlockDemo: '미리 읽어보기 (개발용)',
-  productRestoreStub: '구매 복원 (준비 중)',
-  productPayAlertTitle: '준비 중',
-  productPayAlertBody: '인앱결제(IAP)는 아직 연결되지 않았어요. 개발용으로 결과를 열어둘게요.',
-  productRestoreAlertBody: '구매 복원은 아직 연결되지 않았어요.',
+  productPay: '₩6,900 결제하기',
+  productPayLoading: '결제 진행 중…',
+  productRestore: '구매 복원',
+  productRestoreLoading: '복원 중…',
+  productMockBadge: '개발용 목(mock) 결제 — 스토어 미연결',
+  productPaySuccessTitle: '결제 완료',
+  productPaySuccessBody: '상세 사주 풀이를 열어둘게요.',
+  productPaySuccessMockBody:
+    '목(mock) 모드로 잠금을 해제했어요. 실제 스토어 결제는 개발 빌드 + 콘솔 상품 설정 후 가능해요.',
+  productPayErrorTitle: '결제 안내',
+  productRestoreSuccessTitle: '복원 완료',
+  productRestoreSuccessBody: '이전 구매를 확인했어요. 상세 풀이를 열어둘게요.',
+  productRestoreSuccessMockBody:
+    '목(mock) 모드로 구매를 복원(또는 개발용 잠금 부여)했어요.',
+  productRestoreEmptyTitle: '복원할 구매 없음',
+  productRestoreEmptyBody:
+    '이 계정에서 상세 사주 구매 내역을 찾지 못했어요. 결제한 Apple/Google 계정으로 다시 시도해 주세요.',
   detailDisclaimer:
     'MVP 규칙·템플릿 결과예요. 전문 역술 정확도를 주장하지 않아요.',
   backHome: '홈으로',

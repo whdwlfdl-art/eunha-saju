@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -25,6 +25,8 @@ import {
 } from '@/content';
 import { Brand } from '@/constants/Colors';
 import { Copy } from '@/constants/Copy';
+import { DETAIL_REPORT_PRODUCT_ID } from '@/constants/Iap';
+import { useDetailPurchase } from '@/lib/iap';
 
 function parseGender(raw?: string): Gender {
   if (raw === 'male' || raw === 'other' || raw === 'female') return raw;
@@ -33,7 +35,8 @@ function parseGender(raw?: string): Gender {
 
 /**
  * Paid detail CTA + result shell.
- * IAP is stubbed; “미리 읽어보기” unlocks template content for design review.
+ * Wires expo-iap (non-consumable) with mock fallback for web / Expo Go /
+ * unconfigured store; unlocked state shows template content from the engine.
  */
 export default function DetailScreen() {
   const params = useLocalSearchParams<{
@@ -43,7 +46,17 @@ export default function DetailScreen() {
     gender?: string;
   }>();
 
-  const [unlocked, setUnlocked] = useState(false);
+  const {
+    unlocked,
+    hydrated,
+    mode,
+    purchasing,
+    restoring,
+    purchase,
+    restore,
+  } = useDetailPurchase();
+
+  const busy = purchasing || restoring;
   const [reading, setReading] = useState<DetailReading | null>(null);
   const fade = useSharedValue(0);
 
@@ -76,30 +89,24 @@ export default function DetailScreen() {
     transform: [{ translateY: (1 - fade.value) * 8 }],
   }));
 
-  const unlock = () => setUnlocked(true);
-
-  const stubPay = () => {
-    Alert.alert(Copy.productPayAlertTitle, Copy.productPayAlertBody, [
-      { text: '확인', onPress: unlock },
-    ]);
-  };
-
-  const stubRestore = () => {
-    Alert.alert(Copy.productPayAlertTitle, Copy.productRestoreAlertBody);
-  };
-
   return (
     <Screen scroll>
       <Title>{Copy.productTitle}</Title>
       <Body>{Copy.productBody}</Body>
       <View style={styles.priceGap}>
-        <Muted>{Copy.productPriceStub}</Muted>
+        <Muted>{Copy.productPrice}</Muted>
       </View>
+      {mode === 'mock' ? <Muted>{Copy.productMockBadge}</Muted> : null}
 
-      {!unlocked ? (
+      {!hydrated ? (
+        <View style={styles.loading}>
+          <ActivityIndicator color={Brand.sky} />
+        </View>
+      ) : !unlocked ? (
         <>
           <View style={styles.preview}>
             <Muted>{Copy.productPreview}</Muted>
+            <Muted>{`상품 ID · ${DETAIL_REPORT_PRODUCT_ID}`}</Muted>
             {reading ? (
               <View style={styles.previewList}>
                 {reading.sections.map((s) => (
@@ -110,18 +117,26 @@ export default function DetailScreen() {
           </View>
 
           <View style={styles.actions}>
-            <PrimaryButton label={Copy.productPayStub} onPress={stubPay} />
-            <SecondaryButton
-              label={Copy.productUnlockDemo}
-              onPress={unlock}
+            <PrimaryButton
+              label={purchasing ? Copy.productPayLoading : Copy.productPay}
+              onPress={() => {
+                void purchase();
+              }}
+              disabled={busy}
             />
             <SecondaryButton
-              label={Copy.productRestoreStub}
-              onPress={stubRestore}
+              label={
+                restoring ? Copy.productRestoreLoading : Copy.productRestore
+              }
+              onPress={() => {
+                void restore();
+              }}
+              disabled={busy}
             />
             <SecondaryButton
               label={Copy.backHome}
               onPress={() => router.replace('/')}
+              disabled={busy}
             />
           </View>
         </>
@@ -174,6 +189,10 @@ export default function DetailScreen() {
 const styles = StyleSheet.create({
   priceGap: {
     marginTop: 10,
+  },
+  loading: {
+    marginTop: 48,
+    alignItems: 'center',
   },
   preview: {
     marginTop: 28,
