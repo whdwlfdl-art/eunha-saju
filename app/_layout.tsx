@@ -27,9 +27,9 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: Brand.paper },
         }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="birth" options={{ title: '생년월일' }} />
-        <Stack.Screen name="fortune" options={{ title: '오늘의 운세' }} />
-        <Stack.Screen name="detail" options={{ title: '상세 사주' }} />
+        <Stack.Screen name="birth" options={{ title: '생년월일', headerBackTitle: '홈' }} />
+        <Stack.Screen name="fortune" options={{ title: '오늘의 운세', headerBackTitle: '입력' }} />
+        <Stack.Screen name="detail" options={{ title: '상세 사주', headerBackTitle: '뒤로' }} />
         <Stack.Screen name="+not-found" />
       </Stack>
     </>
