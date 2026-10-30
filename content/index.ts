@@ -1,13 +1,17 @@
 import { AiDraftProvider } from '@/content/AiDraftProvider';
 import { TemplateProvider } from '@/content/TemplateProvider';
 import type {
+  AiContentDraft,
   ContentProvider,
   ContentRequest,
   DailyFortune,
   DetailReading,
+  DraftReviewStatus,
+  GenerateDraftInput,
 } from '@/content/types';
 
 export type {
+  AiContentDraft,
   BirthInput,
   ContentProvider,
   ContentRequest,
@@ -15,7 +19,10 @@ export type {
   DetailReading,
   DetailSection,
   DetailSectionId,
+  DraftKind,
+  DraftReviewStatus,
   Gender,
+  GenerateDraftInput,
   SajuKeys,
 } from '@/content/types';
 
@@ -28,8 +35,8 @@ export { TemplateProvider } from '@/content/TemplateProvider';
 export { AiDraftProvider } from '@/content/AiDraftProvider';
 
 /**
- * Prefer AI draft only when non-null (future reviewed drafts).
- * MVP: AiDraftProvider always returns null → TemplateProvider wins.
+ * Prefer AI draft only when non-null (= approved).
+ * MVP default: no approved drafts → TemplateProvider wins.
  */
 export class CascadingContentProvider implements ContentProvider {
   readonly id = 'cascade';
@@ -54,17 +61,46 @@ export class CascadingContentProvider implements ContentProvider {
   }
 }
 
+let aiDraftSingleton: AiDraftProvider | null = null;
 let defaultProvider: ContentProvider | null = null;
 
-/** App-wide content source — template engine; AI stubbed behind interface. */
+/** Shared AI draft queue (in-memory mock). */
+export function getAiDraftProvider(): AiDraftProvider {
+  if (!aiDraftSingleton) {
+    aiDraftSingleton = new AiDraftProvider();
+  }
+  return aiDraftSingleton;
+}
+
+/** App-wide content source — approved AI first, else templates. */
 export function getContentProvider(): ContentProvider {
   if (!defaultProvider) {
     defaultProvider = new CascadingContentProvider(
-      new AiDraftProvider(),
+      getAiDraftProvider(),
       new TemplateProvider(),
     );
   }
   return defaultProvider;
+}
+
+/** Create a mock draft marked `pending_review` (does not ship to UI). */
+export function generateContentDraft(
+  input: GenerateDraftInput,
+): Promise<AiContentDraft> {
+  return getAiDraftProvider().generateDraft(input);
+}
+
+/** Approve / reject a draft after human review. */
+export function reviewContentDraft(
+  id: string,
+  status: Exclude<DraftReviewStatus, 'pending_review'>,
+  reviewNote?: string,
+): AiContentDraft | null {
+  return getAiDraftProvider().setDraftStatus(id, status, reviewNote);
+}
+
+export function listContentDrafts(): AiContentDraft[] {
+  return getAiDraftProvider().listDrafts();
 }
 
 export async function loadDailyFortune(
@@ -72,7 +108,6 @@ export async function loadDailyFortune(
 ): Promise<DailyFortune> {
   const result = await getContentProvider().getDailyFortune(request);
   if (!result) {
-    // Should not happen with TemplateProvider fallback
     return new TemplateProvider().getDailyFortune(request);
   }
   return result;
@@ -86,4 +121,11 @@ export async function loadDetailReading(
     return new TemplateProvider().getDetailReading(request);
   }
   return result;
+}
+
+/** Test helper — reset cascade singletons. */
+export function __resetContentProvidersForTests(): void {
+  getAiDraftProvider().clearDrafts();
+  aiDraftSingleton = null;
+  defaultProvider = null;
 }
