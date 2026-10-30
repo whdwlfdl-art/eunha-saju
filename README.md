@@ -65,12 +65,15 @@ Pipeline (locked product path B):
 규칙 / 템플릿 → (선택) AI 초안 → 검수 → 출고
 ```
 
+**종철 검수 가이드 (한국어):** Cursor Project store → `docs/content-review-workflow.md` (검수 상태·출고 전 수정 포인트). 승인(`approved`)된 AI 초안만 UI에 나가고, 그 외·미생성 시에는 템플릿 폴백입니다.
+
 | Piece | Role |
 |-------|------|
 | `ContentProvider` | Interface: `getDailyFortune` / `getDetailReading` |
-| `TemplateProvider` | **Implemented** — deterministic keys + template pools |
-| `AiDraftProvider` | **Stub** — returns `null`; TODO real API + review queue |
-| `CascadingContentProvider` | Prefer AI draft when non-null, else templates |
+| `TemplateProvider` | **Implemented** — deterministic keys + enriched template pools (오행 flavor) |
+| `AiDraftProvider` | **Mock draft + review gate** — `generateDraft` → `pending_review` / `approved` / `rejected`; UI only gets `approved` (else `null` → templates). No LLM API keys |
+| `CascadingContentProvider` | Prefer approved AI draft when non-null, else templates |
+| `generateContentDraft` / `reviewContentDraft` | Helpers to enqueue mock drafts and approve/reject after human review |
 
 ### MVP 사주 key assumptions (not professional 역술)
 

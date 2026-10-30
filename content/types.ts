@@ -1,5 +1,5 @@
 /**
- * Content pipeline types — rules/templates now; AI draft later (검수 후 출고).
+ * Content pipeline types — rules/templates + AI draft (검수 후 출고).
  */
 
 export type Gender = 'female' | 'male' | 'other';
@@ -77,3 +77,32 @@ export interface ContentProvider {
   getDailyFortune(request: ContentRequest): Promise<DailyFortune | null>;
   getDetailReading(request: ContentRequest): Promise<DetailReading | null>;
 }
+
+/** AI draft review gate — only `approved` may ship to UI. */
+export type DraftReviewStatus = 'pending_review' | 'approved' | 'rejected';
+
+export type DraftKind = 'daily' | 'detail';
+
+/**
+ * Human-reviewable AI draft record.
+ * `draftText` is the mock LLM string (always marked for review).
+ * Structured `payload` ships only when status === 'approved'.
+ */
+export type AiContentDraft = {
+  id: string;
+  kind: DraftKind;
+  status: DraftReviewStatus;
+  /** Matching key: dailyKey or profileKey */
+  requestKey: string;
+  /** Raw mock output — for 종철 review, never auto-publish */
+  draftText: string;
+  payload: DailyFortune | DetailReading;
+  createdAt: string;
+  reviewedAt?: string;
+  reviewNote?: string;
+};
+
+export type GenerateDraftInput = {
+  request: ContentRequest;
+  kind: DraftKind;
+};
