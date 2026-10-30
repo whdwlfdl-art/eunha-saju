@@ -14,6 +14,7 @@ export const Brand = {
   line: '#d4cdc2',
   ok: '#3d6b5a',
   white: '#ffffff',
+  danger: '#8b3a3a',
 } as const;
 
 export default {

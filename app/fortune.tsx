@@ -1,15 +1,11 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import {
   AdSlotPlaceholder,
-  KeyChipRow,
+  FadeIn,
+  KeyMeta,
   Muted,
   PrimaryButton,
   ResultBlock,
@@ -40,7 +36,7 @@ export default function FortuneScreen() {
   }>();
 
   const [fortune, setFortune] = useState<DailyFortune | null>(null);
-  const fade = useSharedValue(0);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,21 +47,17 @@ export default function FortuneScreen() {
       gender: parseGender(params.gender),
     };
 
+    setReady(false);
     loadDailyFortune({ birth }).then((result) => {
       if (cancelled) return;
       setFortune(result);
-      fade.value = withTiming(1, { duration: 420 });
+      setReady(true);
     });
 
     return () => {
       cancelled = true;
     };
-  }, [params.date, params.time, params.timeUnknown, params.gender, fade]);
-
-  const animStyle = useAnimatedStyle(() => ({
-    opacity: fade.value,
-    transform: [{ translateY: (1 - fade.value) * 10 }],
-  }));
+  }, [params.date, params.time, params.timeUnknown, params.gender]);
 
   const timeLabel =
     params.timeUnknown === '1' || !params.time ? '모름' : (params.time ?? '-');
@@ -73,36 +65,41 @@ export default function FortuneScreen() {
   return (
     <Screen scroll>
       <Title>{Copy.fortuneHeader}</Title>
-      <Muted>{`입력 · ${params.date ?? '-'} · ${timeLabel} · ${params.gender ?? '-'}`}</Muted>
+      <Muted>
+        {`${Copy.fortuneInputPrefix} · ${params.date ?? '-'} · ${timeLabel} · ${params.gender ?? '-'}`}
+      </Muted>
 
-      <Animated.View style={[styles.result, animStyle]}>
-        {fortune ? (
-          <>
-            <View style={styles.panel}>
+      <View style={styles.result}>
+        {!ready ? (
+          <Muted>{Copy.fortuneLoading}</Muted>
+        ) : fortune ? (
+          <FadeIn>
+            <View style={styles.sections}>
               <ResultBlock title={fortune.headline} body={fortune.body} />
-              <View style={styles.divider} />
+              <View style={styles.hairline} />
               <SectionLabel>{Copy.fortuneTipLabel}</SectionLabel>
               <ResultBlock body={fortune.tip} />
+              <View style={styles.keyBlock}>
+                <SectionLabel>{Copy.fortuneKeyLabel}</SectionLabel>
+                <KeyMeta
+                  items={[
+                    { label: '일간', value: fortune.keys.dayStem },
+                    { label: '일지', value: fortune.keys.dayBranch },
+                    { label: '띠', value: fortune.keys.zodiac },
+                    { label: '오행', value: fortune.keys.element },
+                    {
+                      label: '시',
+                      value: fortune.keys.hourBranch ?? '모름',
+                    },
+                  ]}
+                />
+              </View>
             </View>
-
-            <SectionLabel>{Copy.fortuneKeyLabel}</SectionLabel>
-            <KeyChipRow
-              items={[
-                { label: '일간', value: fortune.keys.dayStem },
-                { label: '일지', value: fortune.keys.dayBranch },
-                { label: '띠', value: fortune.keys.zodiac },
-                { label: '오행', value: fortune.keys.element },
-                {
-                  label: '시',
-                  value: fortune.keys.hourBranch ?? '모름',
-                },
-              ]}
-            />
-          </>
+          </FadeIn>
         ) : (
-          <Muted>흐름을 읽고 있어요…</Muted>
+          <Muted>{Copy.fortuneEmpty}</Muted>
         )}
-      </Animated.View>
+      </View>
 
       <View style={styles.ad}>
         <AdSlotPlaceholder />
@@ -128,22 +125,21 @@ export default function FortuneScreen() {
 
 const styles = StyleSheet.create({
   result: {
-    marginTop: 24,
-    marginBottom: 20,
-    gap: 16,
+    marginTop: 28,
+    marginBottom: 28,
+    minHeight: 120,
   },
-  panel: {
-    padding: 20,
-    backgroundColor: Brand.white,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Brand.line,
-    gap: 12,
+  sections: {
+    gap: 18,
   },
-  divider: {
-    height: 1,
+  hairline: {
+    height: StyleSheet.hairlineWidth,
     backgroundColor: Brand.line,
     marginVertical: 4,
+  },
+  keyBlock: {
+    marginTop: 4,
+    gap: 6,
   },
   ad: {
     marginBottom: 28,

@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, type ReactNode } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -11,10 +12,17 @@ import {
   type ViewProps,
   type ViewStyle,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Brand } from '@/constants/Colors';
 import { Copy } from '@/constants/Copy';
+import { Font } from '@/constants/Typography';
 
 type ScreenProps = ViewProps & {
   scroll?: boolean;
@@ -33,8 +41,8 @@ export function Screen({
   const insets = useSafeAreaInsets();
   const pad = {
     paddingTop: Math.max(insets.top, 16) + 12,
-    paddingBottom: Math.max(insets.bottom, 16) + 16,
-    paddingHorizontal: 24,
+    paddingBottom: Math.max(insets.bottom, 16) + 20,
+    paddingHorizontal: 28,
   };
 
   const inner = scroll ? (
@@ -52,16 +60,41 @@ export function Screen({
     <View style={[styles.root, style]} {...props}>
       <LinearGradient
         colors={[Brand.paper, '#eef1f4', Brand.paperDeep]}
-        locations={[0, 0.45, 1]}
+        locations={[0, 0.42, 1]}
         start={{ x: 0.1, y: 0 }}
         end={{ x: 0.9, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      {/* Soft sky band — atmospheric, not purple glow */}
       <View pointerEvents="none" style={styles.skyWash} />
       {inner}
     </View>
   );
+}
+
+/** Soft rise + fade for result sections (1 of the intentional motions). */
+export function FadeIn({
+  children,
+  delay = 0,
+  style,
+}: {
+  children: ReactNode;
+  delay?: number;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const opacity = useSharedValue(0);
+  const rise = useSharedValue(12);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay, withTiming(1, { duration: 440 }));
+    rise.value = withDelay(delay, withTiming(0, { duration: 440 }));
+  }, [delay, opacity, rise]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: rise.value }],
+  }));
+
+  return <Animated.View style={[animStyle, style]}>{children}</Animated.View>;
 }
 
 export function BrandMark() {
@@ -152,11 +185,52 @@ export function SecondaryButton({
   );
 }
 
-export function Field(props: TextInputProps) {
+/** Lowest CTA weight — for dismiss / home, not competing with pay. */
+export function TextButton({
+  label,
+  onPress,
+  disabled,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.textBtn,
+        pressed && styles.pressed,
+        disabled && styles.disabled,
+      ]}>
+      <Text style={styles.textBtnLabel}>{label}</Text>
+    </Pressable>
+  );
+}
+
+/** ₩6,900 price hierarchy — amount first, quiet caption under. */
+export function PriceHighlight({
+  amount,
+  caption,
+}: {
+  amount: string;
+  caption: string;
+}) {
+  return (
+    <View style={styles.priceBlock}>
+      <Text style={styles.priceAmount}>{amount}</Text>
+      <Text style={styles.priceCaption}>{caption}</Text>
+    </View>
+  );
+}
+
+export function Field({ style, ...props }: TextInputProps) {
   return (
     <TextInput
       placeholderTextColor={Brand.inkMuted}
-      style={styles.field}
+      style={[styles.field, style]}
       {...props}
     />
   );
@@ -170,21 +244,30 @@ export function AdSlotPlaceholder() {
   );
 }
 
-export function KeyChipRow({
+/** Quiet key meta — text row instead of pill chips. */
+export function KeyMeta({
   items,
 }: {
   items: { label: string; value: string }[];
 }) {
   return (
-    <View style={styles.chipRow}>
-      {items.map((item) => (
-        <View key={item.label} style={styles.keyChip}>
-          <Text style={styles.keyChipLabel}>{item.label}</Text>
-          <Text style={styles.keyChipValue}>{item.value}</Text>
-        </View>
+    <Text style={styles.keyMeta}>
+      {items.map((item, i) => (
+        <Text key={item.label}>
+          {i > 0 ? '  ·  ' : ''}
+          <Text style={styles.keyMetaLabel}>{item.label} </Text>
+          <Text style={styles.keyMetaValue}>{item.value}</Text>
+        </Text>
       ))}
-    </View>
+    </Text>
   );
+}
+
+/** @deprecated Prefer KeyMeta — kept name alias for call sites during polish. */
+export function KeyChipRow(props: {
+  items: { label: string; value: string }[];
+}) {
+  return <KeyMeta {...props} />;
 }
 
 const styles = StyleSheet.create({
@@ -203,90 +286,121 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 180,
+    height: 200,
     backgroundColor: Brand.sky,
-    opacity: 0.06,
+    opacity: 0.05,
   },
   brandBlock: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   brand: {
-    fontSize: 40,
-    fontWeight: '700',
+    fontFamily: Font.display,
+    fontSize: 44,
     color: Brand.ink,
-    letterSpacing: -1,
-    lineHeight: 48,
+    letterSpacing: -1.2,
+    lineHeight: 54,
   },
   brandEn: {
-    marginTop: 4,
+    marginTop: 6,
+    fontFamily: Font.sansMedium,
     fontSize: 13,
-    fontWeight: '500',
     color: Brand.skySoft,
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '600',
+    fontFamily: Font.displaySemi,
+    fontSize: 24,
     color: Brand.ink,
-    lineHeight: 30,
-    marginBottom: 10,
+    lineHeight: 34,
+    marginBottom: 12,
   },
   body: {
+    fontFamily: Font.sans,
     fontSize: 16,
     color: Brand.ink,
-    lineHeight: 26,
+    lineHeight: 27,
   },
   muted: {
+    fontFamily: Font.sans,
     fontSize: 14,
     color: Brand.inkMuted,
     lineHeight: 22,
   },
   sectionLabel: {
+    fontFamily: Font.sansSemi,
     fontSize: 13,
-    fontWeight: '600',
     color: Brand.sky,
-    letterSpacing: 0.2,
-    marginBottom: 8,
+    letterSpacing: 0.3,
+    marginBottom: 10,
   },
   resultBlock: {
-    paddingVertical: 4,
-    gap: 8,
+    paddingVertical: 2,
+    gap: 10,
   },
   resultTitle: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontFamily: Font.sansSemi,
+    fontSize: 16,
     color: Brand.sky,
+    lineHeight: 24,
   },
   resultBody: {
+    fontFamily: Font.sans,
     fontSize: 16,
     color: Brand.ink,
-    lineHeight: 27,
+    lineHeight: 28,
   },
   primaryBtn: {
     backgroundColor: Brand.amber,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    paddingVertical: 17,
+    paddingHorizontal: 22,
+    borderRadius: 10,
     alignItems: 'center',
   },
   primaryBtnText: {
+    fontFamily: Font.sansSemi,
     color: Brand.white,
     fontSize: 16,
-    fontWeight: '600',
   },
   secondaryBtn: {
     borderWidth: 1,
     borderColor: Brand.line,
-    backgroundColor: Brand.white,
+    backgroundColor: 'transparent',
     paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    paddingHorizontal: 22,
+    borderRadius: 10,
     alignItems: 'center',
   },
   secondaryBtnText: {
+    fontFamily: Font.sansSemi,
     color: Brand.sky,
     fontSize: 16,
-    fontWeight: '600',
+  },
+  textBtn: {
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  textBtnLabel: {
+    fontFamily: Font.sansMedium,
+    color: Brand.inkMuted,
+    fontSize: 15,
+  },
+  priceBlock: {
+    marginTop: 20,
+    marginBottom: 4,
+    gap: 4,
+  },
+  priceAmount: {
+    fontFamily: Font.display,
+    fontSize: 36,
+    color: Brand.ink,
+    letterSpacing: -0.8,
+    lineHeight: 44,
+  },
+  priceCaption: {
+    fontFamily: Font.sans,
+    fontSize: 14,
+    color: Brand.inkMuted,
+    lineHeight: 20,
   },
   pressed: {
     opacity: 0.88,
@@ -299,9 +413,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Brand.line,
     backgroundColor: Brand.white,
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
+    fontFamily: Font.sans,
     fontSize: 16,
     color: Brand.ink,
   },
@@ -309,37 +424,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: Brand.line,
-    backgroundColor: Brand.paperDeep,
+    backgroundColor: 'transparent',
     borderRadius: 8,
-    paddingVertical: 20,
+    paddingVertical: 18,
     alignItems: 'center',
   },
   adSlotText: {
+    fontFamily: Font.sans,
     color: Brand.inkMuted,
     fontSize: 13,
   },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  keyChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: Brand.white,
-    borderWidth: 1,
-    borderColor: Brand.line,
-    minWidth: 72,
-  },
-  keyChipLabel: {
-    fontSize: 11,
+  keyMeta: {
+    fontFamily: Font.sans,
+    fontSize: 13,
+    lineHeight: 22,
     color: Brand.inkMuted,
-    marginBottom: 2,
   },
-  keyChipValue: {
-    fontSize: 14,
-    fontWeight: '600',
+  keyMetaLabel: {
+    fontFamily: Font.sans,
+    color: Brand.skySoft,
+  },
+  keyMetaValue: {
+    fontFamily: Font.sansMedium,
     color: Brand.ink,
   },
 });

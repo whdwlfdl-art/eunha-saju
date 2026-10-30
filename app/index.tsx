@@ -21,13 +21,13 @@ import { Copy } from '@/constants/Copy';
 /** Home — brand hero + CTAs (visuals swappable later). */
 export default function HomeScreen() {
   const heroFade = useSharedValue(0);
-  const heroRise = useSharedValue(12);
+  const heroRise = useSharedValue(14);
   const actionsFade = useSharedValue(0);
 
   useEffect(() => {
-    heroFade.value = withTiming(1, { duration: 520 });
-    heroRise.value = withTiming(0, { duration: 520 });
-    actionsFade.value = withDelay(140, withTiming(1, { duration: 480 }));
+    heroFade.value = withTiming(1, { duration: 560 });
+    heroRise.value = withTiming(0, { duration: 560 });
+    actionsFade.value = withDelay(160, withTiming(1, { duration: 480 }));
   }, [heroFade, heroRise, actionsFade]);
 
   const heroStyle = useAnimatedStyle(() => ({
@@ -50,11 +50,15 @@ export default function HomeScreen() {
       <Animated.View style={[styles.actions, actionsStyle]}>
         <PrimaryButton
           label={Copy.homeCtaFortune}
-          onPress={() => router.push({ pathname: '/birth', params: { intent: 'fortune' } })}
+          onPress={() =>
+            router.push({ pathname: '/birth', params: { intent: 'fortune' } })
+          }
         />
         <SecondaryButton
           label={Copy.homeCtaSaju}
-          onPress={() => router.push({ pathname: '/birth', params: { intent: 'detail' } })}
+          onPress={() =>
+            router.push({ pathname: '/birth', params: { intent: 'detail' } })
+          }
         />
       </Animated.View>
     </Screen>
@@ -72,17 +76,19 @@ const styles = StyleSheet.create({
   hero: {
     flex: 1,
     justifyContent: 'center',
-    gap: 10,
-    paddingBottom: 24,
+    gap: 14,
+    paddingBottom: 32,
   },
   skyBand: {
-    height: 4,
-    width: 52,
+    height: 3,
+    width: 40,
     backgroundColor: Brand.sky,
-    borderRadius: 2,
-    marginBottom: 20,
+    borderRadius: 1,
+    marginBottom: 18,
+    opacity: 0.85,
   },
   actions: {
     gap: 12,
+    paddingBottom: 8,
   },
 });
