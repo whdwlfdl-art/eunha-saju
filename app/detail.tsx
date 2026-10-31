@@ -23,6 +23,7 @@ import {
 } from '@/content';
 import { Brand } from '@/constants/Colors';
 import { Copy } from '@/constants/Copy';
+import { openPrivacyPolicy } from '@/constants/Legal';
 import { useDetailPurchase } from '@/lib/iap';
 
 function parseGender(raw?: string): Gender {
@@ -136,6 +137,13 @@ export default function DetailScreen() {
               onPress={() => router.replace('/')}
               disabled={busy}
             />
+            <TextButton
+              label={Copy.privacyPolicy}
+              onPress={() => {
+                void openPrivacyPolicy();
+              }}
+              disabled={busy}
+            />
           </View>
         </>
       ) : (
@@ -177,6 +185,12 @@ export default function DetailScreen() {
             <TextButton
               label={Copy.backHome}
               onPress={() => router.replace('/')}
+            />
+            <TextButton
+              label={Copy.privacyPolicy}
+              onPress={() => {
+                void openPrivacyPolicy();
+              }}
             />
           </View>
         </FadeIn>

@@ -43,7 +43,9 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {}
+      "router": {},
+      "privacyPolicyUrl": "https://whdwlfdl-art.github.io/eunha-saju/privacy-policy.html",
+      "supportEmail": "whdwlfdl@gmail.com"
     }
   }
 }
