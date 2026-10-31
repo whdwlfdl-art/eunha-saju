@@ -99,6 +99,10 @@ Templates are modern-casual Korean; free daily stays short; paid sections cover 
 
 **Why non-consumable:** one payment permanently unlocks the detailed saju report for that store account; Restore Purchases can re-grant after reinstall. Not a subscription and not a consumable coin pack.
 
+### EAS Build profiles (`eas.json`)
+
+Cloud builds for real-device / store IAP (not Expo Go). Profiles: **`development`** (dev client), **`preview`** (internal), **`production`** (store). Bundle / package: `com.eunhasaju.app`. Do not run `eas build` until Apple/Google developer accounts exist. Korean guide: Project store `docs/eas-build-guide.md`.
+
 ### Mock mode (default for `expo start` / web)
 
 When the store cannot run (web, Expo Go, or `EXPO_PUBLIC_IAP_MOCK=1`), the app uses a **mock** path: purchase / restore unlock locally via AsyncStorage and **do not crash**. Real StoreKit / Play Billing needs a development or production build after store products exist.
