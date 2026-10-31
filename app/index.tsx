@@ -14,9 +14,11 @@ import {
   PrimaryButton,
   Screen,
   SecondaryButton,
+  TextButton,
 } from '@/components/ui';
 import { Brand } from '@/constants/Colors';
 import { Copy } from '@/constants/Copy';
+import { openPrivacyPolicy } from '@/constants/Legal';
 
 /** Home — brand hero + CTAs (visuals swappable later). */
 export default function HomeScreen() {
@@ -59,6 +61,12 @@ export default function HomeScreen() {
           onPress={() =>
             router.push({ pathname: '/birth', params: { intent: 'detail' } })
           }
+        />
+        <TextButton
+          label={Copy.privacyPolicy}
+          onPress={() => {
+            void openPrivacyPolicy();
+          }}
         />
       </Animated.View>
     </Screen>

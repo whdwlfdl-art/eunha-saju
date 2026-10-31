@@ -62,6 +62,7 @@ export const Copy = {
     '규칙·템플릿 결과예요. 전문 역술 정확도를 주장하지 않아요.',
   detailKeyLabel: '사주 키',
   backHome: '홈으로',
+  privacyPolicy: '개인정보 처리방침',
 
   notFoundTitle: '이 화면은 없어요',
   notFoundLink: '홈으로 돌아가기',
